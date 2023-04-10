@@ -4,10 +4,15 @@
 #include <string.h>
 #include <signal.h>
 
+int size=100;
+int* PidList = NULL;
+int nPid;
+
 void monitor_processes() {
     DIR* proc = opendir("/proc"); //DIR è una struttura definita in dirent.h fatta apposta per facilitare il browsing delle cartelle
     struct dirent* entry;
-    
+    nPid=0;
+    PidList = (int*) malloc(size* sizeof(int*));
     while ((entry = readdir(proc)) != NULL) { // readdir lo possiamo paragonare a readline (giusto per fare un analogia sul funzionamento)
         int pid = atoi(entry->d_name); // atoi pulisce la stringa del pid del processo
         if (pid == 0) { // salto la certella 0 dato che ha info che non mi interessano
@@ -23,6 +28,9 @@ void monitor_processes() {
         }
 
         // estraggo tutte le info dal file
+        nPid++;
+        if(nPid==size) {PidList=(int*) realloc(PidList,2*sizeof(PidList)); size=2*size;} //ingrandisco la lista dei pid
+        PidList[nPid-1]=pid;
         char line[256];
         char* name = NULL;
         char* state = NULL;
@@ -58,22 +66,33 @@ void monitor_processes() {
     closedir(proc);
 }
 
+int checkPid(int pid){ //controllo se il pid digitato è presente in lista
+	for(int i=0;i<nPid;i++){
+		if(pid==PidList[i])return 0;}
+	return 1;	
+}
+
 void signal_handler(int act){ // gestisco i signali da mandare in base alla scelte dell'utente
+	if(act>5 || act<0){printf("--selezione non valida--\n\n");return;}
 	if(act==1) {printf("\n"); monitor_processes();return;}
 	int pid=0;
 	printf("\ninserisci pid : ");
 	scanf("%d",&pid);
+	getchar(); //handling errore - getchar serve a pulire il buffer
+	if (checkPid(pid)){printf("\n -- Pid inesistente -- \n\n"); return;}
 	if (act==2)kill(pid, SIGTERM);
 	else if (act==3)kill(pid, SIGKILL);
 	else if (act==4)kill(pid, SIGSTOP);
 	else if (act==5)kill(pid, SIGCONT);
+	return;
 }
 
 int main() {
-	int i=1;
-	while (i!=0){
+	for(int i=-1;i!=0;){
+		i=-1;
 		printf("Cosa vuoi fare:\n1-vedi processi\n2-termina processo\n3-kill processo\n4-sospendi processo\n5-riprendi processo\n0-esci\n\n--");
 		scanf("%d",&i);
+		getchar(); //handling errore - getchar serve a pulire il buffer
 		if(i!=0)signal_handler(i);
 
 }
