@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
+#include <signal.h>
 
 void monitor_processes() {
     DIR* proc = opendir("/proc"); //DIR è una struttura definita in dirent.h fatta apposta per facilitare il browsing delle cartelle
@@ -53,11 +54,44 @@ void monitor_processes() {
             free(memory);
         }
     }
+    printf("\n\n");
     closedir(proc);
 }
 
-int main() {
-    monitor_processes();
+void terminate_process(int pid) { // graceful termination
+    kill(pid, SIGTERM);
+}
 
+void kill_process(int pid) { // kill
+    kill(pid, SIGKILL);
+}
+
+void suspend_process(int pid) { //sospendo il proc.
+    kill(pid, SIGSTOP);
+}
+
+void resume_process(int pid) { // riprendo il proc.
+    kill(pid, SIGCONT);
+}
+
+void signal_handler(int act){
+	if(act==1) {printf("\n"); monitor_processes();return;}
+	int pid=0;
+	printf("\ninserisci pid : ");
+	scanf("%d",&pid);
+	if (act==2)terminate_process(pid);
+	else if (act==3)kill_process(pid);
+	else if (act==4)suspend_process(pid);
+	else if (act==5)resume_process(pid);
+}
+
+int main() {
+	int i=1;
+	while (i!=0){
+		printf("Cosa vuoi fare:\n1-vedi processi\n2-termina processo\n3-kill processo\n4-sospendi processo\n5-riprendi processo\n0-esci\n\n--");
+		scanf("%d",&i);
+		if(i!=0)signal_handler(i);
+
+}
     return 0;
 }
