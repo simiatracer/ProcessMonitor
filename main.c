@@ -58,31 +58,15 @@ void monitor_processes() {
     closedir(proc);
 }
 
-void terminate_process(int pid) { // graceful termination
-    kill(pid, SIGTERM);
-}
-
-void kill_process(int pid) { // kill
-    kill(pid, SIGKILL);
-}
-
-void suspend_process(int pid) { //sospendo il proc.
-    kill(pid, SIGSTOP);
-}
-
-void resume_process(int pid) { // riprendo il proc.
-    kill(pid, SIGCONT);
-}
-
-void signal_handler(int act){
+void signal_handler(int act){ // gestisco i signali da mandare in base alla scelte dell'utente
 	if(act==1) {printf("\n"); monitor_processes();return;}
 	int pid=0;
 	printf("\ninserisci pid : ");
 	scanf("%d",&pid);
-	if (act==2)terminate_process(pid);
-	else if (act==3)kill_process(pid);
-	else if (act==4)suspend_process(pid);
-	else if (act==5)resume_process(pid);
+	if (act==2)kill(pid, SIGTERM);
+	else if (act==3)kill(pid, SIGKILL);
+	else if (act==4)kill(pid, SIGSTOP);
+	else if (act==5)kill(pid, SIGCONT);
 }
 
 int main() {
