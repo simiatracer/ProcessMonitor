@@ -4,9 +4,22 @@
 #include <string.h>
 #include <signal.h>
 
-int size=100;
+int size=3;
 int* PidList = NULL;
 int nPid;
+
+int* doubleArray(int arr[], int n) {
+    int* newArr = malloc(2*n*sizeof(int));
+    if (newArr == NULL) {
+        printf("--errore allocazione memoria--\n");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < n; i++) {
+        newArr[i] = arr[i];
+    }
+    free(arr);
+    return newArr;
+}
 
 void monitor_processes() {
     DIR* proc = opendir("/proc"); //DIR è una struttura definita in dirent.h fatta apposta per facilitare il browsing delle cartelle
@@ -29,7 +42,7 @@ void monitor_processes() {
 
         // estraggo tutte le info dal file
         nPid++;
-        if(nPid==size) {PidList=(int*) realloc(PidList,2*sizeof(PidList)); size=2*size;} //ingrandisco la lista dei pid
+        if(nPid==size) {PidList=doubleArray(PidList,2*nPid); size=2*size;} //ingrandisco la lista dei pid
         PidList[nPid-1]=pid;
         char line[256];
         char* name = NULL;
@@ -66,6 +79,7 @@ void monitor_processes() {
     closedir(proc);
 }
 
+
 int checkPid(int pid){ //controllo se il pid digitato è presente in lista
 	for(int i=0;i<nPid;i++){
 		if(pid==PidList[i])return 0;}
@@ -96,5 +110,7 @@ int main() {
 		if(i!=0)signal_handler(i);
 
 }
+
+	free(PidList);
     return 0;
 }
